@@ -1,95 +1,119 @@
-import {
-	Input,
-	// Loader,
-	ActionIcon,
-	Tooltip,
-	CopyButton,
-	Checkbox,
-	Anchor,
-	Paper,
-	Title,
-	Text,
-	Container,
-	Group,
-	Button,
-	MantineTheme,
-	Portal,
-	TextInput,
-	createStyles,
-} from "@mantine/core";
-import { FormEvent, useState } from "react";
-import { IconCopy, IconCheck } from "@tabler/icons-react";
-import ModalComponent from "./ShareModal";
+import { Modal } from "rsuite";
+import { Button } from "@mantine/core";
+
+import { ActionIcon, CopyButton, TextInput, Tooltip } from "@mantine/core";
+import { IconCheck, IconCopy } from "@tabler/icons-react";
+import { FormEvent, useState, useEffect } from "react";
+import { generate } from "short-uuid";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import "./CreateRoom.css";
 
-/**
- * To be able to share a video and watch it with others
- * 1. A youtube video link
- * 2. A Room Key or Pass Code
- * 3. A Username
- *
- * To be able to join a room you need a
- * 1. A Room Key or Pass Code
- * 2. A Username
- */
+type Prop = {
+	open: boolean;
+	onClose(): void;
+	videoUrl: string;
+};
+const ModalComponent = ({ open, videoUrl, onClose }: Prop) => {
+	const [roomId, setRoomId] = useState("");
+	const [username, setUsername] = useState("");
+	const [passPhrase, setPassPhrase] = useState("");
+	const [loading, setLoading] = useState(false);
+	const [btnMsg, setBtnMsg] = useState("Create Room");
+	const [videoState, setVideoState] = useState({
+		seekValue: 0,
+		isPlaying: false,
+		volumeValue: 1,
+	});
 
-const useStyles = createStyles((theme) => ({
-	modal: {
-		right: 10,
-		background: "red",
-		height: "10px",
-	},
-}));
+	// convex
+	const createRoom = useMutation(api.db.createRoom);
 
-const ShareLink = () => {
-	// const createRoom = useMutation(api.shared.createRoom);
+	const handleBtnClick = async () => {
+		// let newRoom = await createRoom({
+		// 	roomId,
+		// 	videoUrl,
+		// 	passPhrase,
+		// 	videoState,
+		// 	moderator: {
+		// 		username,
+		// 		videoControls: "ALLOWED",
+		// 	},
+		// });
 
-	// // createRoom({})
+		setLoading(true);
+		setBtnMsg("Creating Room");
 
-	const [url, setUrl] = useState("");
-	const [open, setOpened] = useState(false);
+		// if (!newRoom.status) {
+		// 	console.log(newRoom.error);
+		// 	console.log(newRoom.dbErr);
+		// 	return;
+		// }
+	};
 
-	const { classes } = useStyles();
-	const handleOpen = () => setOpened(true);
-	const handleClose = () => setOpened(false);
+	// Generate temp values
+	useEffect(() => {
+		let roomId = generate().toString();
+		let passPhrase = generate().toString();
+		setRoomId(roomId);
+		setPassPhrase(passPhrase);
+	}, []);
+
+	useEffect(() => {
+		console.log("Each time it changes", passPhrase);
+	}, [passPhrase]);
 
 	return (
-		<>
-			<ModalComponent open={open} onClose={handleClose} />
-			<Container size={420} my={40}>
-				<Title
-					align="center"
-					sx={(theme: MantineTheme) => ({
-						fontFamily: `Greycliff CF, ${theme.fontFamily}`,
-						fontWeight: 900,
-					})}
+		<Modal open={open} onClose={() => onClose()}>
+			<Modal.Header>
+				<Modal.Title>ROOM DETAILS</Modal.Title>
+			</Modal.Header>
+			<Modal.Body>
+				{/* <Placeholder.Paragraph rows={80} /> */}
+
+				<TextInput
+					label="Enter username"
+					placeholder="Sukuna"
+					value={username}
+					onChange={(e: FormEvent<HTMLInputElement>) =>
+						setUsername(e.currentTarget.value)
+					}
+					required
+				/>
+				<TextInput
+					mt={10}
+					label="Password"
+					placeholder="Xxajnaikwss"
+					value={passPhrase}
+					onChange={(e: FormEvent<HTMLInputElement>) =>
+						setPassPhrase(e.currentTarget.value)
+					}
+					rightSection={<Copy value={passPhrase} />}
+					required
+				/>
+				<TextInput
+					mt={10}
+					label="Room Id"
+					placeholder="Skjachsocls"
+					value={roomId}
+					onChange={(e: FormEvent<HTMLInputElement>) =>
+						setRoomId(e.currentTarget.value)
+					}
+					rightSection={<Copy value={roomId} />}
+					required
+				/>
+
+				<Button
+					fullWidth
+					mt="xl"
+					onClick={handleBtnClick}
+					loading={loading ? true : false}
 				>
-					Welcome!
-				</Title>
-				<Text color="dimmed" size="sm" align="center" mt={5}>
-					Share and watch live with ur friends
-				</Text>
-
-				<Paper withBorder shadow="md" p={30} mt={30} radius="md">
-					<TextInput
-						mt={5}
-						label="Video Link"
-						placeholder="https://youtu.be/R2OQnIg1Ya4?si=HlfEHDCq9H4PC14G"
-						value={url}
-						onChange={(e: FormEvent<HTMLInputElement>) =>
-							setUrl(e.currentTarget.value)
-						}
-						required
-					/>
-
-					<Button fullWidth mt="xl" onClick={() => handleOpen()}>
-						Generate
-					</Button>
-				</Paper>
-			</Container>
-		</>
+					{btnMsg}
+				</Button>
+			</Modal.Body>
+			{/* <Modal.Footer></Modal.Footer> */}
+		</Modal>
 	);
 };
 
@@ -107,4 +131,4 @@ const Copy = ({ value = "" }) => {
 	);
 };
 
-export default ShareLink;
+export default ModalComponent;

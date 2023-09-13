@@ -1,6 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 import Video from "./components/VideoPlayer";
-import CreateRoom from "./components/CreateRoom";
+import CreateRoom from "./components/Welcome";
 import "rsuite/dist/rsuite.min.css";
 
 function Router() {
