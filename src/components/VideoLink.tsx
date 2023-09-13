@@ -1,8 +1,5 @@
 import {
 	// Loader,
-	ActionIcon,
-	Tooltip,
-	CopyButton,
 	Paper,
 	Title,
 	Text,
@@ -10,15 +7,13 @@ import {
 	Button,
 	MantineTheme,
 	TextInput,
+	Anchor,
 } from "@mantine/core";
 import { FormEvent, useEffect, useState } from "react";
-import { IconCopy, IconCheck } from "@tabler/icons-react";
-import ModalComponent from "./CreateRoom";
-// import { useMutation, useQuery } from "convex/react";
-// import { api } from "../../convex/_generated/api";
-import "./Welcome.css";
+// import { IconCopy, IconCheck } from "@tabler/icons-react";
+import CreateRoom from "./CreateRoom";
 
-const ShareLink = () => {
+const VideoLink = () => {
 	// const createRoom = useMutation(api.shared.createRoom);
 
 	// // createRoom({})
@@ -45,7 +40,7 @@ const ShareLink = () => {
 
 	return (
 		<>
-			<ModalComponent open={open} videoUrl={videoUrl} onClose={handleClose} />
+			<CreateRoom open={open} videoUrl={videoUrl} onClose={handleClose} />
 			<Container size={420} my={40}>
 				<Title
 					align="center"
@@ -62,7 +57,7 @@ const ShareLink = () => {
 
 				<Paper withBorder shadow="md" p={30} mt={30} radius="md">
 					<TextInput
-						mt={5}
+						mt={10}
 						label="Video Link"
 						placeholder="https://youtu.be/"
 						value={videoUrl}
@@ -88,18 +83,4 @@ const ShareLink = () => {
 	);
 };
 
-const Copy = ({ value = "" }) => {
-	return (
-		<CopyButton value={value} timeout={2000}>
-			{({ copied, copy }) => (
-				<Tooltip label={copied ? "Copied" : "Copy"} withArrow position="right">
-					<ActionIcon color={copied ? "teal" : "gray"} onClick={copy}>
-						{copied ? <IconCheck size="1rem" /> : <IconCopy size="1rem" />}
-					</ActionIcon>
-				</Tooltip>
-			)}
-		</CopyButton>
-	);
-};
-
-export default ShareLink;
+export default VideoLink;

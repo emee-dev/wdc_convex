@@ -7,14 +7,13 @@ import { FormEvent, useState, useEffect } from "react";
 import { generate } from "short-uuid";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import "./CreateRoom.css";
 
 type Prop = {
 	open: boolean;
 	onClose(): void;
 	videoUrl: string;
 };
-const ModalComponent = ({ open, videoUrl, onClose }: Prop) => {
+const CreateRoomModal = ({ open, videoUrl, onClose }: Prop) => {
 	const [roomId, setRoomId] = useState("");
 	const [username, setUsername] = useState("");
 	const [passPhrase, setPassPhrase] = useState("");
@@ -26,29 +25,34 @@ const ModalComponent = ({ open, videoUrl, onClose }: Prop) => {
 		volumeValue: 1,
 	});
 
-	// convex
+	// convex function
 	const createRoom = useMutation(api.db.createRoom);
 
 	const handleBtnClick = async () => {
-		// let newRoom = await createRoom({
-		// 	roomId,
-		// 	videoUrl,
-		// 	passPhrase,
-		// 	videoState,
-		// 	moderator: {
-		// 		username,
-		// 		videoControls: "ALLOWED",
-		// 	},
-		// });
-
 		setLoading(true);
 		setBtnMsg("Creating Room");
+		let newRoom = await createRoom({
+			roomId,
+			videoUrl,
+			passPhrase,
+			videoState,
+			moderator: {
+				username,
+				videoControls: "ALLOWED",
+			},
+		});
 
-		// if (!newRoom.status) {
-		// 	console.log(newRoom.error);
-		// 	console.log(newRoom.dbErr);
-		// 	return;
-		// }
+		if (!newRoom.status) {
+			setLoading(false);
+			setBtnMsg("Create Room");
+			console.log(newRoom.error);
+			console.log(newRoom.dbErr);
+			return;
+		}
+
+		setLoading(false);
+		setBtnMsg("Room was created");
+		return;
 	};
 
 	// Generate temp values
@@ -58,10 +62,6 @@ const ModalComponent = ({ open, videoUrl, onClose }: Prop) => {
 		setRoomId(roomId);
 		setPassPhrase(passPhrase);
 	}, []);
-
-	useEffect(() => {
-		console.log("Each time it changes", passPhrase);
-	}, [passPhrase]);
 
 	return (
 		<Modal open={open} onClose={() => onClose()}>
@@ -131,4 +131,4 @@ const Copy = ({ value = "" }) => {
 	);
 };
 
-export default ModalComponent;
+export default CreateRoomModal;

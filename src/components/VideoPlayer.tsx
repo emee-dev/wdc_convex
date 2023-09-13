@@ -6,8 +6,6 @@ import { api } from "../../convex/_generated/api";
 import "./VideoPlayer.css";
 
 const VideoPlayer = () => {
-	
-	// const getRoom = useQuery(api.shared.getRoom, {});
 	// const updateVideo = useMutation(api.shared.updateVideo);
 
 	const [volume, setVolume] = useState(0); // volume range [0, 1]
@@ -33,6 +31,19 @@ const VideoPlayer = () => {
 			playerRef.current.seekTo(value);
 		}
 	};
+
+	// const getRoom = useQuery(api.db.getRoom, {
+	// 	roomId: "12dscsc",
+	// 	passPhrase: "stringified",
+	// });
+
+	// if (!getRoom || !getRoom.status) {
+	// 	// setLoading(false);
+	// 	// setBtnMsg("Error Joining room");
+	// 	console.log(getRoom?.error);
+	// 	console.log(getRoom?.dbErr);
+	// 	return;
+	// }
 
 	return (
 		<>
