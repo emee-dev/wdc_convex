@@ -1,46 +1,58 @@
 import { Modal } from "rsuite";
-import { Button } from "@mantine/core";
-
-import { ActionIcon, CopyButton, TextInput, Tooltip } from "@mantine/core";
-import { IconCheck, IconCopy } from "@tabler/icons-react";
-import { FormEvent, useState } from "react";
+import { Button, TextInput } from "@mantine/core";
+import { FormEvent, useState, useEffect } from "react";
 import { useMutation, useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
 import { useNavigate } from "react-router-dom";
+import { api } from "../../convex/_generated/api";
+import { useAuth } from "../context/context";
 
 type Prop = {
 	open: boolean;
 	onClose(): void;
 };
 const JoinRoom = ({ open, onClose }: Prop) => {
-	const [roomId, setRoomId] = useState("");
-	const [username, setUsername] = useState("");
-	const [passPhrase, setPassPhrase] = useState("");
+	// convex function
+	const joinRoom = useMutation(api.db.inviteUser);
+
+	const [roomId, setRoomId] = useState("12dscsc");
+	const [username, setUsername] = useState("mmthjsl");
+	const [password, setPassword] = useState("stringified");
 	const [loading, setLoading] = useState(false);
+	const [disable, setDisabled] = useState(false);
 	const [btnMsg, setBtnMsg] = useState("Join Room");
 
 	const navigate = useNavigate();
-	const handleNavigation = () => navigate({ pathname: "/room" });
-
-	// convex function
-	const joinRoom = useMutation(api.db.inviteUser);
+	const handleNavigation = (path: string) => navigate({ pathname: path });
 
 	// const wait = (time: number) => {
 	// 	return new Promise((resolve) => setTimeout(resolve, time));
 	// };
 
+	let { setUser } = useAuth();
+
+	useEffect(() => {
+		if (!roomId || !username || !password) {
+			setBtnMsg("All fields are required");
+			setDisabled(true);
+		} else {
+			setBtnMsg("Join Room");
+			setDisabled(false);
+		}
+	}, [roomId, username, password]);
+
 	const handleBtnClick = async () => {
 		setLoading(true);
 		let newInvite = await joinRoom({
 			roomId,
-			passPhrase,
+			password,
 			invited: {
 				username,
 				videoControls: "NOT_ALLOWED",
 			},
+			moderator: false,
 		});
 
-		if (!newInvite.status) {
+		if (!newInvite.status && newInvite.data.length === 0) {
 			setLoading(false);
 			setBtnMsg("Error Joining room");
 			console.log(newInvite.error);
@@ -48,11 +60,19 @@ const JoinRoom = ({ open, onClose }: Prop) => {
 			return;
 		}
 
-		// await wait(3000);
+		let data = newInvite.data[0];
+
+		setUser({
+			password,
+			roomId: data.roomId,
+			username: data.username,
+			moderator: false,
+			videoControl: "NOT_ALLOWED",
+		});
 
 		setLoading(false);
 		setBtnMsg("Joining pls wait");
-		handleNavigation();
+		handleNavigation("/room");
 		return;
 	};
 
@@ -86,9 +106,9 @@ const JoinRoom = ({ open, onClose }: Prop) => {
 					mt={10}
 					label="Room Password"
 					placeholder="Uisllcoos"
-					value={passPhrase}
+					value={password}
 					onChange={(e: FormEvent<HTMLInputElement>) =>
-						setPassPhrase(e.currentTarget.value)
+						setPassword(e.currentTarget.value)
 					}
 					required
 				/>
@@ -98,6 +118,7 @@ const JoinRoom = ({ open, onClose }: Prop) => {
 					mt="xl"
 					onClick={handleBtnClick}
 					loading={loading ? true : false}
+					disabled={disable ? true : false}
 				>
 					{btnMsg}
 				</Button>

@@ -54,8 +54,7 @@ const NotFoundTitle = () => {
 	const { classes } = useStyles();
 
 	const navigate = useNavigate();
-
-	const handleNavigation = () => navigate({ pathname: "/" });
+	const handleNavigation = (path: string) => navigate({ pathname: path });
 
 	return (
 		<Container className={classes.root}>
@@ -71,8 +70,19 @@ const NotFoundTitle = () => {
 				address, or the page has been moved to another URL.
 			</Text>
 			<Group position="center">
-				<Button variant="subtle" size="md" onClick={handleNavigation}>
-					Take me back to home page
+				<Button
+					variant="subtle"
+					size="md"
+					onClick={() => handleNavigation("/create")}
+				>
+					Create a room
+				</Button>
+				<Button
+					variant="subtle"
+					size="md"
+					onClick={() => handleNavigation("/")}
+				>
+					Back to homepage
 				</Button>
 			</Group>
 		</Container>

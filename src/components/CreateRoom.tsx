@@ -1,10 +1,22 @@
+import {
+	// Loader,
+	Paper,
+	Title,
+	Text,
+	Container,
+	MantineTheme,
+	Anchor,
+	ActionIcon,
+	CopyButton,
+	TextInput,
+	Tooltip,
+	Button,
+} from "@mantine/core";
 import { Modal } from "rsuite";
-import { Button } from "@mantine/core";
-
-import { ActionIcon, CopyButton, TextInput, Tooltip } from "@mantine/core";
-import { IconCheck, IconCopy } from "@tabler/icons-react";
 import { FormEvent, useState, useEffect } from "react";
+import { IconCheck, IconCopy } from "@tabler/icons-react";
 import { generate } from "short-uuid";
+import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 
@@ -13,10 +25,32 @@ type Prop = {
 	onClose(): void;
 	videoUrl: string;
 };
-const CreateRoomModal = ({ open, videoUrl, onClose }: Prop) => {
+
+const Copy = ({ value = "" }) => {
+	return (
+		<CopyButton value={value} timeout={2000}>
+			{({ copied, copy }) => (
+				<Tooltip label={copied ? "Copied" : "Copy"} withArrow position="right">
+					<ActionIcon color={copied ? "teal" : "gray"} onClick={copy}>
+						{copied ? <IconCheck size="1rem" /> : <IconCopy size="1rem" />}
+					</ActionIcon>
+				</Tooltip>
+			)}
+		</CopyButton>
+	);
+};
+
+const VideoLink = () => {
+	// convex function
+	const createRoom = useMutation(api.db.createRoom);
+
+	const [videoUrl, setVideoUrl] = useState("");
+	const [open, setOpened] = useState(false);
+	const [error, setError] = useState("");
+
 	const [roomId, setRoomId] = useState("");
 	const [username, setUsername] = useState("");
-	const [passPhrase, setPassPhrase] = useState("");
+	const [password, setPassword] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [btnMsg, setBtnMsg] = useState("Create Room");
 	const [videoState, setVideoState] = useState({
@@ -25,8 +59,32 @@ const CreateRoomModal = ({ open, videoUrl, onClose }: Prop) => {
 		volumeValue: 1,
 	});
 
-	// convex function
-	const createRoom = useMutation(api.db.createRoom);
+	const handleOpen = () => setOpened(true);
+	const handleClose = () => setOpened(false);
+
+	useEffect(() => {
+		const urlRegex =
+			/^(https?|ftp):\/\/([^\s/$.?#].[^\s]*)\.([a-zA-Z]{2,}|localhost)(:[0-9]+)?([^\s]*)$/i;
+
+		let errTest = !urlRegex.test(videoUrl);
+
+		if (errTest) {
+			setError("Please enter a valid url");
+		} else {
+			setError("");
+		}
+	}, [videoUrl]);
+
+	// Generate values
+	useEffect(() => {
+		let roomId = generate().toString();
+		let password = generate().toString();
+		setRoomId(roomId);
+		setPassword(password);
+	}, []);
+
+	const navigate = useNavigate();
+	const handleNavigation = (path: string) => navigate({ pathname: path });
 
 	const handleBtnClick = async () => {
 		setLoading(true);
@@ -34,7 +92,7 @@ const CreateRoomModal = ({ open, videoUrl, onClose }: Prop) => {
 		let newRoom = await createRoom({
 			roomId,
 			videoUrl,
-			passPhrase,
+			password,
 			videoState,
 			moderator: {
 				username,
@@ -52,83 +110,100 @@ const CreateRoomModal = ({ open, videoUrl, onClose }: Prop) => {
 
 		setLoading(false);
 		setBtnMsg("Room was created");
+		handleNavigation("/room");
 		return;
 	};
 
-	// Generate temp values
-	useEffect(() => {
-		let roomId = generate().toString();
-		let passPhrase = generate().toString();
-		setRoomId(roomId);
-		setPassPhrase(passPhrase);
-	}, []);
-
 	return (
-		<Modal open={open} onClose={() => onClose()}>
-			<Modal.Header>
-				<Modal.Title>ROOM DETAILS</Modal.Title>
-			</Modal.Header>
-			<Modal.Body>
-				{/* <Placeholder.Paragraph rows={80} /> */}
+		<>
+			<Modal open={open} onClose={handleClose}>
+				<Modal.Header>
+					<Modal.Title>ROOM DETAILS</Modal.Title>
+				</Modal.Header>
+				<Modal.Body>
+					<TextInput
+						label="Enter username"
+						placeholder="Sukuna"
+						value={username}
+						onChange={(e: FormEvent<HTMLInputElement>) =>
+							setUsername(e.currentTarget.value)
+						}
+						required
+					/>
+					<TextInput
+						mt={10}
+						label="Password"
+						placeholder="Xxajnaikwss"
+						value={password}
+						onChange={(e: FormEvent<HTMLInputElement>) =>
+							setPassword(e.currentTarget.value)
+						}
+						rightSection={<Copy value={password} />}
+						required
+					/>
+					<TextInput
+						mt={10}
+						label="Room Id"
+						placeholder="Skjachsocls"
+						value={roomId}
+						onChange={(e: FormEvent<HTMLInputElement>) =>
+							setRoomId(e.currentTarget.value)
+						}
+						rightSection={<Copy value={roomId} />}
+						required
+					/>
 
-				<TextInput
-					label="Enter username"
-					placeholder="Sukuna"
-					value={username}
-					onChange={(e: FormEvent<HTMLInputElement>) =>
-						setUsername(e.currentTarget.value)
-					}
-					required
-				/>
-				<TextInput
-					mt={10}
-					label="Password"
-					placeholder="Xxajnaikwss"
-					value={passPhrase}
-					onChange={(e: FormEvent<HTMLInputElement>) =>
-						setPassPhrase(e.currentTarget.value)
-					}
-					rightSection={<Copy value={passPhrase} />}
-					required
-				/>
-				<TextInput
-					mt={10}
-					label="Room Id"
-					placeholder="Skjachsocls"
-					value={roomId}
-					onChange={(e: FormEvent<HTMLInputElement>) =>
-						setRoomId(e.currentTarget.value)
-					}
-					rightSection={<Copy value={roomId} />}
-					required
-				/>
-
-				<Button
-					fullWidth
-					mt="xl"
-					onClick={handleBtnClick}
-					loading={loading ? true : false}
+					<Button
+						fullWidth
+						mt="xl"
+						onClick={handleBtnClick}
+						loading={loading ? true : false}
+						// disabled={error ? true : false}
+					>
+						{btnMsg}
+					</Button>
+				</Modal.Body>
+			</Modal>
+			<Container size={420} my={40}>
+				<Title
+					align="center"
+					sx={(theme: MantineTheme) => ({
+						fontFamily: `Greycliff CF, ${theme.fontFamily}`,
+						fontWeight: 900,
+					})}
 				>
-					{btnMsg}
-				</Button>
-			</Modal.Body>
-			{/* <Modal.Footer></Modal.Footer> */}
-		</Modal>
+					Welcome!
+				</Title>
+				<Text color="dimmed" size="sm" align="center" mt={5}>
+					Share and watch live with ur friends
+				</Text>
+
+				<Paper withBorder shadow="md" p={30} mt={30} radius="md">
+					<TextInput
+						mt={10}
+						label="Video Link"
+						placeholder="https://youtu.be/"
+						value={videoUrl}
+						onChange={(e: FormEvent<HTMLInputElement>) => {
+							let value = e.currentTarget.value;
+							setVideoUrl(value);
+						}}
+						error={error ? error : ""}
+						required
+					/>
+
+					<Button
+						fullWidth
+						mt="xl"
+						disabled={error ? true : false}
+						onClick={() => handleOpen()}
+					>
+						Proceed
+					</Button>
+				</Paper>
+			</Container>
+		</>
 	);
 };
 
-const Copy = ({ value = "" }) => {
-	return (
-		<CopyButton value={value} timeout={2000}>
-			{({ copied, copy }) => (
-				<Tooltip label={copied ? "Copied" : "Copy"} withArrow position="right">
-					<ActionIcon color={copied ? "teal" : "gray"} onClick={copy}>
-						{copied ? <IconCheck size="1rem" /> : <IconCopy size="1rem" />}
-					</ActionIcon>
-				</Tooltip>
-			)}
-		</CopyButton>
-	);
-};
-
-export default CreateRoomModal;
+export default VideoLink;

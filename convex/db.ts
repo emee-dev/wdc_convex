@@ -3,23 +3,23 @@ import { v } from "convex/values";
 
 /* {
 	roomId: "12dscsc",
-	passPhrase: "stringified",
+	password: "stringified",
 	} 
 */
 
 export const getRoom = query({
 	args: {
 		roomId: v.string(),
-		passPhrase: v.string(),
+		password: v.string(),
 	},
-	handler: async (ctx, { roomId, passPhrase }) => {
+	handler: async (ctx, { roomId, password }) => {
 		// Find the room
 		const room = await ctx.db
 			.query("rooms")
 			.filter((q) =>
 				q.and(
 					q.eq(q.field("roomId"), roomId),
-					q.eq(q.field("passPhrase"), passPhrase)
+					q.eq(q.field("password"), password)
 				)
 			)
 			.first();
@@ -49,7 +49,7 @@ export const createRoom = mutation({
 			username: v.string(),
 			videoControls: v.literal("ALLOWED"),
 		}),
-		passPhrase: v.string(),
+		password: v.string(),
 		videoUrl: v.string(),
 		videoState: v.object({
 			seekValue: v.number(),
@@ -58,14 +58,14 @@ export const createRoom = mutation({
 		}),
 	},
 	handler: async (ctx, args) => {
-		let { roomId, roomUrl, moderator, passPhrase, videoState, videoUrl } = args;
+		let { roomId, roomUrl, moderator, password, videoState, videoUrl } = args;
 
 		// Create a new room
 		let createRoom = await ctx.db.insert("rooms", {
 			roomId,
 			videoUrl,
 			videoState,
-			passPhrase,
+			password,
 			roomUrl: roomUrl ? roomUrl : null,
 		});
 		if (!createRoom)
@@ -114,82 +114,94 @@ export const createRoom = mutation({
 export const inviteUser = mutation({
 	args: {
 		roomId: v.string(),
-		passPhrase: v.string(),
+		password: v.string(),
 		invited: v.object({
 			username: v.string(),
 			videoControls: v.union(v.literal("ALLOWED"), v.literal("NOT_ALLOWED")),
 		}),
+		moderator: v.boolean(),
 	},
-	handler: async (ctx, { roomId, passPhrase, invited }) => {
+	handler: async (ctx, { roomId, password, invited, moderator }) => {
 		// Find the room
 		const room = await ctx.db
 			.query("rooms")
 			.filter((q) =>
 				q.and(
 					q.eq(q.field("roomId"), roomId),
-					q.eq(q.field("passPhrase"), passPhrase)
+					q.eq(q.field("password"), password)
 				)
 			)
 			.first();
 
-		if (!room)
+		if (!room) {
 			return {
 				status: false,
 				dbErr: room,
 				error: "'Join Room', room does not exist, try again",
 				data: [],
 			};
+		}
 
-		// Be certain invited user does not already exist
+		if (moderator !== false) {
+			return {
+				status: false,
+				dbErr: null,
+				error: "'Join Room', a moderator already exists",
+				data: [],
+			};
+		}
+
+		// Be certain invited user does not already exist and is not admin
 		const inviteExists = await ctx.db
 			.query("users")
 			.filter((q) =>
 				q.and(
-					q.eq(q.field("moderator"), false),
 					q.eq(q.field("roomId"), roomId),
+					q.eq(q.field("moderator"), moderator),
 					q.eq(q.field("username"), invited.username)
 				)
 			)
 			.first();
 
-		if (inviteExists) {
-			return {
-				status: false,
-				dbErr: inviteExists,
-				error: "'Join Room', invite already exists, join to continue",
-				data: [],
-			};
-		}
+		if (!inviteExists) {
+			if (invited.videoControls !== "NOT_ALLOWED") {
+				return {
+					status: false,
+					dbErr: null,
+					error: "'Join Room', video controls cannot be granted",
+					data: [],
+				};
+			}
 
-		if (invited.videoControls === "ALLOWED") {
+			// Add invited user to db
+			let saveRecord = await ctx.db.insert("users", {
+				roomId,
+				moderator: false,
+				username: invited.username,
+				videoControls: invited.videoControls,
+			});
+
+			if (!saveRecord)
+				return {
+					status: false,
+					dbErr: saveRecord,
+					error: "'Join Room', error inviting user to room",
+					data: [],
+				};
+
 			return {
-				status: false,
+				status: true,
 				dbErr: null,
-				error: "'Join Room', a moderator already exists, check your status",
+				error: null,
 				data: [],
 			};
 		}
-		// Add invited user to db
-		let saveRecord = await ctx.db.insert("users", {
-			roomId,
-			moderator: false,
-			username: invited.username,
-			videoControls: invited.videoControls,
-		});
-
-		if (!saveRecord)
-			return {
-				status: false,
-				dbErr: saveRecord,
-				error: "'Join Room', error inviting user to room",
-				data: [],
-			};
 
 		return {
 			status: true,
 			dbErr: null,
 			error: null,
-			data: [],
+			data: [inviteExists],
 		};
 	},
 });
@@ -198,21 +210,21 @@ export const updateVideo = mutation({
 	args: {
 		roomId: v.string(),
 		moderator: v.object({ username: v.string() }),
-		passPhrase: v.string(),
+		password: v.string(),
 		videoState: v.object({
 			seekValue: v.number(),
 			isPlaying: v.boolean(),
 			volumeValue: v.number(),
 		}),
 	},
-	handler: async (ctx, { roomId, moderator, passPhrase, videoState }) => {
+	handler: async (ctx, { roomId, moderator, password, videoState }) => {
 		// Find the room record
 		const record = await ctx.db
 			.query("rooms")
 			.filter((q) =>
 				q.and(
 					q.eq(q.field("roomId"), roomId),
-					q.eq(q.field("passPhrase"), passPhrase)
+					q.eq(q.field("password"), password)
 				)
 			)
 			.first();
@@ -267,7 +279,7 @@ export const elevateUser = mutation({
 		moderator: v.object({
 			username: v.string(),
 		}),
-		passPhrase: v.string(),
+		password: v.string(),
 		invited: v.object({
 			username: v.string(),
 			videoControls: v.union(v.literal("ALLOWED"), v.literal("NOT_ALLOWED")),

@@ -11,9 +11,9 @@ import {
 	rem,
 } from "@mantine/core";
 import { IconCheck } from "@tabler/icons-react";
-import SvgImage from "../assets/image.svg";
 import { useNavigate } from "react-router-dom";
-import JoinRoom from "./JoinRoom";
+import SvgImage from "../assets/image.svg";
+import JoinRoom from "../components/JoinRoom";
 import { useState } from "react";
 
 const useStyles = createStyles((theme) => ({
@@ -74,9 +74,9 @@ const useStyles = createStyles((theme) => ({
 const HomePage = () => {
 	const [open, setOpened] = useState(false);
 	const { classes } = useStyles();
-	const navigate = useNavigate();
 
-	const handleNavigation = () => navigate({ pathname: "/create" });
+	const navigate = useNavigate();
+	const handleNavigation = (path: string) => navigate({ pathname: path });
 
 	const handleOpen = () => setOpened(true);
 	const handleClose = () => setOpened(false);
@@ -125,7 +125,7 @@ const HomePage = () => {
 								radius="xl"
 								size="md"
 								className={classes.control}
-								onClick={handleNavigation}
+								onClick={() => handleNavigation("/create")}
 							>
 								Get started 🤞
 							</Button>

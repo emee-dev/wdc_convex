@@ -14,7 +14,7 @@ export default defineSchema({
 		roomId: v.string(),
 		roomUrl: v.union(v.string(), v.null()),
 		videoUrl: v.string(),
-		passPhrase: v.string(),
+		password: v.string(),
 		videoState: v.object({
 			seekValue: v.number(),
 			isPlaying: v.boolean(),
