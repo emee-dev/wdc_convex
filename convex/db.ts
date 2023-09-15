@@ -1,7 +1,7 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
-export const getRoom = query({
+export const getVideo = query({
 	args: {
 		roomId: v.string(),
 		password: v.string(),

@@ -11,14 +11,20 @@ import { useAuth } from "../context/context";
 const VideoPlayer = () => {
 	const updateVideo = useMutation(api.db.updateVideo);
 
-	// let { user } = useAuth();
+	let { user } = useAuth();
 
-	// // console.log(user);
-
+	const [videoControls, setVideoControls] =
+		useState<typeof user.videoControl>("NOT_ALLOWED");
 	const [volume, setVolume] = useState(0.7); // volume range [0, 1]
 	const [playing, setPlaying] = useState(false); // playing range [0, 1]
 	const [seek, setSeek] = useState(0); // seek range [0, 1]
 	const [progress, setProgress] = useState(0); // progress range [0, 1]
+	const [videoState, setVideoState] = useState({
+		seekValue: 0,
+		isPlaying: false,
+		volumeValue: 1,
+		progressValue: 0,
+	});
 
 	const playerRef = useRef<any>(null);
 
@@ -45,13 +51,25 @@ const VideoPlayer = () => {
 		setProgress(state.played * 100);
 	};
 
+	// useEffect(() => {
+	// 	const roomVideo = useQuery(api.db.getVideo, {});
+	// }, []);
+
+	// set videoplayer state based on user video control
 	useEffect(() => {
-		console.log({
-			isPlaying: playing,
-			seekValue: seek,
-			volumeValue: volume,
-			progress: progress,
-		});
+		setVideoControls(user.videoControl);
+	}, []);
+
+	useEffect(() => {
+		if (videoControls === "NOT_ALLOWED") {
+			console.log("Watching video only");
+			// then fetch db video and set state
+		}
+
+		if (videoControls === "ALLOWED") {
+			console.log("Watching and writing video");
+			// then write db and set state
+		}
 	}, [playing, seek, volume, progress]);
 
 	// update record
@@ -66,7 +84,7 @@ const VideoPlayer = () => {
 	// 			isPlaying: playing,
 	// 			seekValue: seek,
 	// 			volumeValue: volume,
-	// 			progress: progress,
+	// 			progressValue: progress,
 	// 		},
 	// 	});
 	// }, [playing, seek, volume, progress]);

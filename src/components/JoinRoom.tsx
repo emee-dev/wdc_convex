@@ -24,10 +24,6 @@ const JoinRoom = ({ open, onClose }: Prop) => {
 	const navigate = useNavigate();
 	const handleNavigation = (path: string) => navigate({ pathname: path });
 
-	// const wait = (time: number) => {
-	// 	return new Promise((resolve) => setTimeout(resolve, time));
-	// };
-
 	let { setUser } = useAuth();
 
 	useEffect(() => {

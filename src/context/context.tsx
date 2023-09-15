@@ -1,6 +1,6 @@
 import React, { createContext, useContext, ReactNode, useState } from "react";
 
-type User = {
+export type User = {
 	roomId: string;
 	username: string;
 	password: string;

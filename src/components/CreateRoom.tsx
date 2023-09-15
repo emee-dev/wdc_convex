@@ -1,11 +1,9 @@
 import {
-	// Loader,
 	Paper,
 	Title,
 	Text,
 	Container,
 	MantineTheme,
-	Anchor,
 	ActionIcon,
 	CopyButton,
 	TextInput,
@@ -19,12 +17,7 @@ import { generate } from "short-uuid";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-
-type Prop = {
-	open: boolean;
-	onClose(): void;
-	videoUrl: string;
-};
+import { User } from "../context/context";
 
 const Copy = ({ value = "" }) => {
 	return (
@@ -44,19 +37,21 @@ const VideoLink = () => {
 	// convex function
 	const createRoom = useMutation(api.db.createRoom);
 
-	const [videoUrl, setVideoUrl] = useState("");
+	const [videoControls, setVideoControls] = useState<"ALLOWED">("ALLOWED");
 	const [open, setOpened] = useState(false);
 	const [error, setError] = useState("");
+	const [loading, setLoading] = useState(false);
+	const [btnMsg, setBtnMsg] = useState("Create Room");
 
+	const [videoUrl, setVideoUrl] = useState("");
 	const [roomId, setRoomId] = useState("");
 	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
-	const [loading, setLoading] = useState(false);
-	const [btnMsg, setBtnMsg] = useState("Create Room");
 	const [videoState, setVideoState] = useState({
 		seekValue: 0,
 		isPlaying: false,
 		volumeValue: 1,
+		progressValue: 0,
 	});
 
 	const handleOpen = () => setOpened(true);
@@ -96,7 +91,7 @@ const VideoLink = () => {
 			videoState,
 			moderator: {
 				username,
-				videoControls: "ALLOWED",
+				videoControls,
 			},
 		});
 
@@ -158,7 +153,6 @@ const VideoLink = () => {
 						mt="xl"
 						onClick={handleBtnClick}
 						loading={loading ? true : false}
-						// disabled={error ? true : false}
 					>
 						{btnMsg}
 					</Button>
