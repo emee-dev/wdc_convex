@@ -17,8 +17,9 @@ export default defineSchema({
 		password: v.string(),
 		videoState: v.object({
 			seekValue: v.number(),
-			isPlaying: v.boolean(),
 			volumeValue: v.number(),
+			isPlaying: v.boolean(),
+			progressValue: v.number(),
 		}),
 	}),
 });

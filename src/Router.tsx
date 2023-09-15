@@ -5,6 +5,7 @@ import VideoLink from "./components/CreateRoom";
 import NotFound from "./pages/NoPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import "rsuite/dist/rsuite.min.css";
+import NoAuth from "./pages/NoAuth";
 
 function Router() {
 	return (
@@ -14,6 +15,7 @@ function Router() {
 			<Route element={<ProtectedRoute />}>
 				<Route path="/room" element={<VideoPage />} />
 			</Route>
+			<Route path="/unauthorized" element={<NoAuth />} />
 			<Route path="*" element={<NotFound />} />
 		</Routes>
 	);

@@ -39,18 +39,10 @@ export function useAuth() {
 	}
 
 	let key = "user";
-
-	let data: User | null = JSON.parse(localStorage.getItem(key)!);
-
 	const setUser = (value: User) => {
 		localStorage.setItem(key, JSON.stringify(value));
-		context?.setUser((prev) => {
-			return {
-				...prev,
-				value,
-			};
-		});
+		context?.setUser(value);
 	};
 
-	return { user: data, setUser };
+	return { user: context.user, setUser };
 }

@@ -54,7 +54,7 @@ const JoinRoom = ({ open, onClose }: Prop) => {
 
 		if (!newInvite.status && newInvite.data.length === 0) {
 			setLoading(false);
-			setBtnMsg("Error Joining room");
+			setBtnMsg("Room does not exist");
 			console.log(newInvite.error);
 			console.log(newInvite.dbErr);
 			return;

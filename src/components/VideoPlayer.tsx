@@ -5,36 +5,15 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 // import { Slider } from "rsuite";
 import { ActionIcon, Grid, Progress, SimpleGrid, Slider } from "@mantine/core";
-// import {
-// 	IconSettings,
-// 	IconPlayerPause,
-// 	IconPlayerPlay,
-// } from "@tabler/icons-react";
 import { OnProgressProps } from "react-player/base";
 import { useAuth } from "../context/context";
 
 const VideoPlayer = () => {
-	// const updateVideo = useMutation(api.db.updateVideo);
+	const updateVideo = useMutation(api.db.updateVideo);
 
-	// updateVideo({
+	// let { user } = useAuth();
 
-	// })
-
-	let { user } = useAuth();
-
-	// useEffect(() => {
-	// 	setUser((v) => {
-	// 		return {
-	// 			...v,
-	// 			roomId: "123evv",
-	// 			username: "llaop",
-	// 			moderator: true,
-	// 			videoControl: "NOT_ALLOWED",
-	// 		};
-	// 	});
-	// }, []);
-
-	console.log(user);
+	// // console.log(user);
 
 	const [volume, setVolume] = useState(0.7); // volume range [0, 1]
 	const [playing, setPlaying] = useState(false); // playing range [0, 1]
@@ -55,22 +34,6 @@ const VideoPlayer = () => {
 		console.log("Playing video");
 	};
 
-	const togglePlay = () => setPlaying(!playing);
-
-	const handleVolumeChange = (volume: number) => {
-		let value = volume / 100;
-		return setVolume(value);
-	};
-
-	const handleSeekChange = (val: number) => {
-		let value = val / 100;
-
-		if (playerRef.current) {
-			setSeek(value);
-			playerRef.current.seekTo(value);
-		}
-	};
-
 	const handleVideoEnded = () => {
 		if (playing) {
 			setPlaying(!playing);
@@ -82,6 +45,32 @@ const VideoPlayer = () => {
 		setProgress(state.played * 100);
 	};
 
+	useEffect(() => {
+		console.log({
+			isPlaying: playing,
+			seekValue: seek,
+			volumeValue: volume,
+			progress: progress,
+		});
+	}, [playing, seek, volume, progress]);
+
+	// update record
+	// useEffect(() => {
+	// 	updateVideo({
+	// 		roomId: user.roomId,
+	// 		moderator: {
+	// 			username: user.username,
+	// 		},
+	// 		password: user?.password,
+	// 		videoState: {
+	// 			isPlaying: playing,
+	// 			seekValue: seek,
+	// 			volumeValue: volume,
+	// 			progress: progress,
+	// 		},
+	// 	});
+	// }, [playing, seek, volume, progress]);
+
 	return (
 		<>
 			<Grid style={{ height: "100vh" }}>
@@ -89,10 +78,11 @@ const VideoPlayer = () => {
 					1
 				</Grid.Col>
 				<Grid.Col
-					span={8}
+					span={6}
 					style={{
 						height: "100%",
 						placeItems: "center",
+						padding: "5px 25px",
 					}}
 				>
 					2
@@ -116,8 +106,8 @@ const VideoPlayer = () => {
 							onError={() => console.log("Error loading media")}
 							// url="https://www.youtube.com/watch?v=LXb3EKWsInQ"
 							url="/sample.mp4"
-							width="100%"
-							height="100%"
+							// width="100%"
+							// height="100%"
 							style={{
 								position: "absolute",
 								top: 0,
@@ -126,7 +116,7 @@ const VideoPlayer = () => {
 						/>
 					</div>
 				</Grid.Col>
-				<Grid.Col style={{ background: "yellow" }} span={4}>
+				<Grid.Col style={{ background: "yellow" }} span={6}>
 					3
 				</Grid.Col>
 			</Grid>

@@ -1,6 +1,5 @@
 import { useEffect } from "react";
-import { Outlet } from "react-router-dom";
-import NoAuth from "../pages/NoAuth";
+import { Outlet, useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../context/context";
@@ -19,9 +18,21 @@ const ProtectedRoute = () => {
 	// 	return;
 	// }
 
-	let { user } = useAuth();
+	const navigate = useNavigate();
+	const handleNavigation = (path: string) => navigate({ pathname: path });
 
-	if (!user) return <NoAuth />;
+	let { user, setUser } = useAuth();
+	let key = "user";
+	let data = JSON.parse(localStorage.getItem(key)!);
+
+	useEffect(() => {
+		if (!user.roomId && !user.username && !data) {
+			handleNavigation("/unauthorized");
+		} else {
+			setUser(data);
+		}
+	}, []);
+
 	return <Outlet />;
 };
 

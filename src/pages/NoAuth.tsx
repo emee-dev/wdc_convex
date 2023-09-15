@@ -8,8 +8,10 @@ import {
 	SimpleGrid,
 	rem,
 } from "@mantine/core";
+import { useState } from "react";
 import image from "../assets/otp.svg";
 import { useNavigate } from "react-router-dom";
+import JoinRoom from "../components/JoinRoom";
 
 const useStyles = createStyles((theme) => ({
 	root: {
@@ -49,12 +51,17 @@ const useStyles = createStyles((theme) => ({
 
 const NoAuth = () => {
 	const { classes } = useStyles();
+	const [open, setOpen] = useState(false);
+
+	const handleOpen = () => setOpen(true);
+	const handleClose = () => setOpen(false);
 
 	const navigate = useNavigate();
-	const handleNavigation = () => navigate({ pathname: "/ " });
+	const handleNavigation = (path: string) => navigate({ pathname: path });
 
 	return (
 		<Container className={classes.root}>
+			<JoinRoom open={open} onClose={handleClose} />
 			<SimpleGrid
 				spacing={80}
 				cols={2}
@@ -71,9 +78,20 @@ const NoAuth = () => {
 						size="md"
 						mt="xl"
 						className={classes.control}
-						onClick={handleNavigation}
+						onClick={() => handleNavigation("/")}
 					>
 						Get back to home page
+					</Button>
+
+					<Button
+						variant="outline"
+						size="md"
+						mt="xl"
+						ml="sm"
+						className={classes.control}
+						onClick={handleOpen}
+					>
+						Join a room asap
 					</Button>
 				</div>
 				<Image src={image} className={classes.desktopImage} />

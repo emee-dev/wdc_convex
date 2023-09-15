@@ -1,12 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
-/* {
-	roomId: "12dscsc",
-	password: "stringified",
-	} 
-*/
-
 export const getRoom = query({
 	args: {
 		roomId: v.string(),
@@ -53,8 +47,9 @@ export const createRoom = mutation({
 		videoUrl: v.string(),
 		videoState: v.object({
 			seekValue: v.number(),
-			isPlaying: v.boolean(),
 			volumeValue: v.number(),
+			isPlaying: v.boolean(),
+			progressValue: v.number(),
 		}),
 	},
 	handler: async (ctx, args) => {
@@ -213,8 +208,9 @@ export const updateVideo = mutation({
 		password: v.string(),
 		videoState: v.object({
 			seekValue: v.number(),
-			isPlaying: v.boolean(),
 			volumeValue: v.number(),
+			isPlaying: v.boolean(),
+			progressValue: v.number(),
 		}),
 	},
 	handler: async (ctx, { roomId, moderator, password, videoState }) => {
