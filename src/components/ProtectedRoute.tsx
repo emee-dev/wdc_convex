@@ -5,33 +5,22 @@ import { api } from "../../convex/_generated/api";
 import { useAuth } from "../context/context";
 
 const ProtectedRoute = () => {
-	// const getRoom = useQuery(api.db.getRoom, {
-	// 	roomId: "12dscsc",
-	// 	passPhrase: "stringified",
-	// });
-
-	// if (!getRoom || !getRoom.status) {
-	// 	// setLoading(false);
-	// 	// setBtnMsg("Error Joining room");
-	// 	console.log(getRoom?.error);
-	// 	console.log(getRoom?.dbErr);
-	// 	return;
-	// }
-
 	const navigate = useNavigate();
-	const handleNavigation = (path: string) => navigate({ pathname: path });
 
-	let { user, setUser } = useAuth();
-	let key = "user";
-	let data = JSON.parse(localStorage.getItem(key)!);
+	const { user, setUser } = useAuth();
+	const key = "user";
 
 	useEffect(() => {
-		if (!user.roomId && !user.username && !data) {
-			handleNavigation("/unauthorized");
+		const key = "user";
+		const data = JSON.parse(localStorage.getItem(key) || "null");
+
+		if (!data) {
+			// User not found in local storage, redirect to /unauthorized
+			navigate("/unauthorized");
 		} else {
 			setUser(data);
 		}
-	}, []);
+	}, [navigate]);
 
 	return <Outlet />;
 };

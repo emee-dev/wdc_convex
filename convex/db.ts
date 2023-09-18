@@ -30,7 +30,7 @@ export const getVideo = query({
 			status: true,
 			dbErr: null,
 			error: null,
-			data: room,
+			data: [room],
 		};
 	},
 });
@@ -108,98 +108,91 @@ export const createRoom = mutation({
 
 export const inviteUser = mutation({
 	args: {
-		roomId: v.string(),
-		password: v.string(),
-		invited: v.object({
-			username: v.string(),
-			videoControls: v.union(v.literal("ALLOWED"), v.literal("NOT_ALLOWED")),
-		}),
-		moderator: v.boolean(),
+	  roomId: v.string(),
+	  password: v.string(),
+	  invited: v.object({
+		username: v.string(),
+		videoControls: v.union(v.literal("ALLOWED"), v.literal("NOT_ALLOWED")),
+	  }),
+	  moderator: v.boolean(),
 	},
 	handler: async (ctx, { roomId, password, invited, moderator }) => {
-		// Find the room
-		const room = await ctx.db
-			.query("rooms")
-			.filter((q) =>
-				q.and(
-					q.eq(q.field("roomId"), roomId),
-					q.eq(q.field("password"), password)
-				)
-			)
-			.first();
-
-		if (!room) {
-			return {
-				status: false,
-				dbErr: room,
-				error: "'Join Room', room does not exist, try again",
-				data: [],
-			};
-		}
-
-		if (moderator !== false) {
-			return {
-				status: false,
-				dbErr: null,
-				error: "'Join Room', a moderator already exists",
-				data: [],
-			};
-		}
-
-		// Be certain invited user does not already exist and is not admin
-		const inviteExists = await ctx.db
-			.query("users")
-			.filter((q) =>
-				q.and(
-					q.eq(q.field("roomId"), roomId),
-					q.eq(q.field("moderator"), moderator),
-					q.eq(q.field("username"), invited.username)
-				)
-			)
-			.first();
-
-		if (!inviteExists) {
-			if (invited.videoControls !== "NOT_ALLOWED") {
-				return {
-					status: false,
-					dbErr: null,
-					error: "'Join Room', video controls cannot be granted",
-					data: [],
-				};
-			}
-
-			// Add invited user to db
-			let saveRecord = await ctx.db.insert("users", {
-				roomId,
-				moderator: false,
-				username: invited.username,
-				videoControls: invited.videoControls,
-			});
-
-			if (!saveRecord)
-				return {
-					status: false,
-					dbErr: saveRecord,
-					error: "'Join Room', error inviting user to room",
-					data: [],
-				};
-
-			return {
-				status: true,
-				dbErr: null,
-				error: null,
-				data: [],
-			};
-		}
-
+	  // Find the room
+	  const room = await ctx.db.query("rooms")
+		.filter((q) => q.and(q.eq(q.field("roomId"), roomId), q.eq(q.field("password"), password)))
+		.first();
+  
+	  if (!room) {
 		return {
-			status: true,
-			dbErr: null,
-			error: null,
-			data: [inviteExists],
+		  status: false,
+		  dbErr: room,
+		  error: "'Join Room', room does not exist, try again",
+		  data: [],
 		};
+	  }
+  
+	  if (moderator) {
+		return {
+		  status: false,
+		  dbErr: null,
+		  error: "'Join Room', a moderator already exists",
+		  data: [],
+		};
+	  }
+  
+	  // Check if invited user already exists and is not a moderator
+	  const inviteExists = await ctx.db.query("users")
+		.filter((q) => q.and(
+		  q.eq(q.field("roomId"), roomId),
+		  q.eq(q.field("moderator"), false),
+		  q.eq(q.field("username"), invited.username)
+		))
+		.first();
+  
+	  if (inviteExists) {
+		return {
+		  status: true,
+		  dbErr: null,
+		  error: null,
+		  data: [inviteExists],
+		};
+	  }
+  
+	  if (invited.videoControls !== "NOT_ALLOWED") {
+		return {
+		  status: false,
+		  dbErr: null,
+		  error: "'Join Room', video controls cannot be granted",
+		  data: [],
+		};
+	  }
+  
+	  // Add invited user to the database
+	  const saveRecord = await ctx.db.insert("users", {
+		roomId,
+		moderator: false,
+		username: invited.username,
+		videoControls: invited.videoControls,
+	  });
+  
+	  if (!saveRecord) {
+		return {
+		  status: false,
+		  dbErr: saveRecord,
+		  error: "'Join Room', error inviting user to room",
+		  data: [],
+		};
+	  }
+  
+	  return {
+		status: true,
+		dbErr: null,
+		error: null,
+		data: [],
+	  };
 	},
-});
+  });
+  
 
 export const updateVideo = mutation({
 	args: {

@@ -13,18 +13,17 @@ type Prop = {
 const JoinRoom = ({ open, onClose }: Prop) => {
 	// convex function
 	const joinRoom = useMutation(api.db.inviteUser);
+	let { setUser } = useAuth();
 
-	const [roomId, setRoomId] = useState("12dscsc");
-	const [username, setUsername] = useState("mmthjsl");
-	const [password, setPassword] = useState("stringified");
+	const [roomId, setRoomId] = useState("sL6NmWWjS34bmS2j9fRWTT");
+	const [username, setUsername] = useState("Gojo");
+	const [password, setPassword] = useState("6cJWYwzzbtzNy76yHkm4yF");
 	const [loading, setLoading] = useState(false);
 	const [disable, setDisabled] = useState(false);
 	const [btnMsg, setBtnMsg] = useState("Join Room");
 
 	const navigate = useNavigate();
 	const handleNavigation = (path: string) => navigate({ pathname: path });
-
-	let { setUser } = useAuth();
 
 	useEffect(() => {
 		if (!roomId || !username || !password) {
@@ -48,9 +47,10 @@ const JoinRoom = ({ open, onClose }: Prop) => {
 			moderator: false,
 		});
 
-		if (!newInvite.status && newInvite.data.length === 0) {
+		if (!newInvite.status || newInvite.data.length === 0) {
 			setLoading(false);
-			setBtnMsg("Room does not exist");
+			setDisabled(false);
+			setBtnMsg("Click to continue");
 			console.log(newInvite.error);
 			console.log(newInvite.dbErr);
 			return;
@@ -63,10 +63,11 @@ const JoinRoom = ({ open, onClose }: Prop) => {
 			roomId: data.roomId,
 			username: data.username,
 			moderator: false,
-			videoControl: "NOT_ALLOWED",
+			videoControls: "NOT_ALLOWED",
 		});
 
 		setLoading(false);
+		setDisabled(false);
 		setBtnMsg("Joining pls wait");
 		handleNavigation("/room");
 		return;

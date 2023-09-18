@@ -1,10 +1,17 @@
-import React, { createContext, useContext, ReactNode, useState } from "react";
+import React, {
+	createContext,
+	useContext,
+	ReactNode,
+	useState,
+	useEffect,
+} from "react";
+import { useNavigate } from "react-router-dom";
 
 export type User = {
 	roomId: string;
 	username: string;
 	password: string;
-	videoControl: "ALLOWED" | "NOT_ALLOWED";
+	videoControls: "ALLOWED" | "NOT_ALLOWED";
 	moderator: boolean;
 };
 
@@ -21,7 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 		username: "",
 		password: "",
 		moderator: false,
-		videoControl: "NOT_ALLOWED",
+		videoControls: "NOT_ALLOWED",
 	});
 
 	return (
@@ -41,8 +48,9 @@ export function useAuth() {
 	let key = "user";
 	const setUser = (value: User) => {
 		localStorage.setItem(key, JSON.stringify(value));
-		context?.setUser(value);
+		context?.setUser({ ...value });
 	};
 
 	return { user: context.user, setUser };
+	// return { user: getUser(), setUser };
 }

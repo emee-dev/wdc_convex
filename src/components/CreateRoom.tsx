@@ -17,7 +17,7 @@ import { generate } from "short-uuid";
 import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "../../convex/_generated/api";
-import { User } from "../context/context";
+import { useAuth } from "../context/context";
 
 const Copy = ({ value = "" }) => {
 	return (
@@ -36,17 +36,20 @@ const Copy = ({ value = "" }) => {
 const VideoLink = () => {
 	// convex function
 	const createRoom = useMutation(api.db.createRoom);
+	const { setUser } = useAuth();
 
 	const [videoControls, setVideoControls] = useState<"ALLOWED">("ALLOWED");
+	const [moderator, setModerator] = useState<boolean>(true);
 	const [open, setOpened] = useState(false);
 	const [error, setError] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [btnMsg, setBtnMsg] = useState("Create Room");
 
-	const [videoUrl, setVideoUrl] = useState("");
 	const [roomId, setRoomId] = useState("");
+	const [videoUrl, setVideoUrl] = useState("");
 	const [username, setUsername] = useState("");
 	const [password, setPassword] = useState("");
+
 	const [videoState, setVideoState] = useState({
 		seekValue: 0,
 		isPlaying: false,
@@ -105,6 +108,14 @@ const VideoLink = () => {
 
 		setLoading(false);
 		setBtnMsg("Room was created");
+		// update local storage and context
+		setUser({
+			roomId,
+			moderator,
+			password,
+			username,
+			videoControls,
+		});
 		handleNavigation("/room");
 		return;
 	};
