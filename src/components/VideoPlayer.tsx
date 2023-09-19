@@ -2,14 +2,17 @@ import ReactPlayer, { YouTubeConfig } from "react-player/youtube";
 import AllPlayer from "react-player";
 import { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery } from "convex/react";
-import { ActionIcon, Grid, Progress, Slider, rem } from "@mantine/core";
+import { ActionIcon, Grid, Slider, Textarea, rem } from "@mantine/core";
 import { api } from "../../convex/_generated/api";
 import { OnProgressProps } from "react-player/base";
 import { useAuth } from "../context/context";
 import {
-	IconHeart,
+	IconReload,
 	IconPlayerPlay,
 	IconPlayerPause,
+	IconRefreshAlert,
+	IconUser,
+	IconUserBolt,
 } from "@tabler/icons-react";
 
 const VideoPlayer = () => {
@@ -17,73 +20,120 @@ const VideoPlayer = () => {
 
 	const updateVideo = useMutation(api.db.updateVideo);
 
-	const videoStateSubscription = useQuery(api.db.getVideo, {
+	const videoStateQuery = useQuery(api.db.getVideo, {
 		roomId: user.roomId,
 		password: user.password,
 	});
 
-	const videoStateFromDatabase = videoStateSubscription?.data[0]?.videoState;
-	const videoUrlFromDb = videoStateSubscription?.data[0]?.videoUrl;
+	const allMembersQuery = useQuery(api.db.getAllMembers, {
+		roomId: user.roomId,
+	});
+
+	const videoStateFromDatabase = videoStateQuery?.data[0]?.videoState;
+	const videoUrlFromDb = videoStateQuery?.data[0]?.videoUrl;
+	const allMembers = allMembersQuery?.data;
 
 	const [videoControls, setVideoControls] =
 		useState<typeof user.videoControls>("NOT_ALLOWED");
-	const [volume, setVolume] = useState(0.7); // volume range [0, 1]
-	const [playing, setPlaying] = useState(false); // playing range [0, 1]
+
 	const [isBuffering, setIsBuffering] = useState(true);
-	const [seek, setSeek] = useState(0); // seek range [0, 1]
-	const [progress, setProgress] = useState(0); // progress range [0, 1]
 	const [videoUrl, setVideoUrl] = useState("/sample.mp4");
+	const [members, setMembers] = useState<typeof allMembers>([]);
 	const [player, setPlayer] = useState({
-		seekValue: 0,
+		seekValue: 0, // seek range [0, 1]
 		isPlaying: false,
-		volumeValue: 1,
-		progressValue: 0,
+		volumeValue: 1, // volume range [0, 1]
+		progressValue: 0, // progress range [0, 1]
 	});
 
 	const playerRef = useRef<any>(null);
 
-	const onSeek = (seconds: number) => setSeek(seconds);
+	const onSeek = (seconds: number) =>
+		setPlayer((prev) => {
+			return {
+				...prev,
+				seekValue: seconds,
+			};
+		});
 
 	const onPause = () => {
-		setPlaying(false);
+		setPlayer((prev) => {
+			return {
+				...prev,
+				isPlaying: false,
+			};
+		});
+		// handleSetProgress(videoStateFromDatabase.progressValue);
 	};
 
 	const onPlay = () => {
-		setPlaying(true);
+		setPlayer((prev) => {
+			return {
+				...prev,
+				isPlaying: true,
+			};
+		});
+		// handleSetProgress(videoStateFromDatabase.progressValue);
 	};
 
 	const onVideoEnded = () => {
-		if (playing) {
-			setPlaying(!playing);
-			setProgress(0); // reset the slider
+		if (player.isPlaying) {
+			setPlayer((prev) => {
+				return {
+					...prev,
+					isPlaying: !player.isPlaying,
+					progressValue: 0, // reset the slider
+				};
+			});
 		}
 	};
 
 	const onVideoProgress = (state: OnProgressProps) => {
 		if (state.played === 1) {
 			// if the video has concluded
-			setProgress(0); // reset the slider
+			setPlayer((prev) => {
+				return {
+					...prev,
+					progressValue: 0, // reset the slider
+				};
+			});
 		} else {
-			setProgress(state.played);
+			setPlayer((prev) => {
+				return {
+					...prev,
+					progressValue: state.played,
+				};
+			});
 		}
 	};
 
 	const handleSetProgress = (value: number) => {
 		playerRef.current.seekTo(value, "fraction");
-		setProgress(value);
+		setPlayer((prev) => {
+			return {
+				...prev,
+				progressValue: value,
+			};
+		});
 	};
 
 	useEffect(() => {
 		setVideoControls(user.videoControls);
 		if (videoUrlFromDb) setVideoUrl(videoUrlFromDb);
 		if (videoControls === "NOT_ALLOWED" && videoStateFromDatabase) {
-			setPlaying(videoStateFromDatabase.isPlaying);
-
-			handleSetProgress(videoStateFromDatabase.progressValue);
-
-			setVolume(videoStateFromDatabase.volumeValue);
+			setPlayer((prev) => {
+				return {
+					...prev,
+					isPlaying: videoStateFromDatabase.isPlaying,
+					volumeValue: videoStateFromDatabase.progressValue,
+				};
+			});
 		}
-	}, [user, videoStateFromDatabase]);
+
+		if (allMembers && allMembers.length >= 1) {
+			setMembers([...allMembers]);
+		}
+	}, [user, videoStateFromDatabase, allMembers]);
 
 	// Sync moderator with db
 	useEffect(() => {
@@ -95,14 +145,19 @@ const VideoPlayer = () => {
 					username: user.username,
 				},
 				videoState: {
-					seekValue: seek,
-					isPlaying: playing,
-					progressValue: progress,
-					volumeValue: volume,
+					seekValue: player.seekValue,
+					isPlaying: player.isPlaying,
+					progressValue: player.progressValue,
+					volumeValue: player.volumeValue,
 				},
 			});
 		}
-	}, [playing, seek, volume, progress]);
+	}, [
+		player.isPlaying,
+		player.seekValue,
+		player.volumeValue,
+		player.progressValue,
+	]);
 
 	return (
 		<>
@@ -110,8 +165,50 @@ const VideoPlayer = () => {
 				<Grid.Col span={12} style={{ height: "10%" }}>
 					1
 				</Grid.Col>
-				<Grid.Col span={3} style={{ height: "90%", background: "yellow" }}>
-					2222
+				<Grid.Col
+					span={3}
+					style={{
+						display: "flex",
+						flexDirection: "row",
+						height: "90%",
+						gap: "5px",
+						background: "grey",
+						borderRadius: "4px",
+						paddingLeft: "15px",
+					}}
+				>
+					{members &&
+						members.map((item) => {
+							if (item.moderator) {
+								return (
+									<div>
+										<ActionIcon
+											size={62}
+											variant={"gradient"}
+											aria-label="The Moderator"
+										>
+											<IconUserBolt
+												style={{ width: rem(30), height: rem(30) }}
+											/>
+										</ActionIcon>
+									</div>
+								);
+							}
+
+							if (!item.moderator) {
+								return (
+									<div>
+										<ActionIcon
+											size={62}
+											variant={"default"}
+											aria-label="The Invite"
+										>
+											<IconUser style={{ width: rem(25), height: rem(25) }} />
+										</ActionIcon>
+									</div>
+								);
+							}
+						})}
 				</Grid.Col>
 				<Grid.Col
 					span={6}
@@ -122,15 +219,11 @@ const VideoPlayer = () => {
 					}}
 				>
 					3
-					<div
-						style={{
-							position: "relative",
-						}}
-					>
+					<div>
 						<AllPlayer
 							ref={playerRef}
-							playing={playing}
-							volume={volume}
+							playing={player.isPlaying}
+							volume={player.volumeValue}
 							controls // rerender to show controls
 							onSeek={onSeek}
 							onPause={onPause}
@@ -162,15 +255,15 @@ const VideoPlayer = () => {
 								<ActionIcon
 									size={42}
 									variant="default"
-									aria-label="ActionIcon with size as a number"
+									aria-label="Toggle Play or Pause"
 								>
-									{!playing ? (
+									{!player.isPlaying ? (
 										<IconPlayerPlay
 											onClick={onPlay}
 											style={{ width: rem(24), height: rem(24) }}
 										/>
 									) : null}
-									{playing ? (
+									{player.isPlaying ? (
 										<IconPlayerPause
 											onClick={onPause}
 											style={{ width: rem(24), height: rem(24) }}
@@ -184,10 +277,66 @@ const VideoPlayer = () => {
 									min={0}
 									max={0.9999}
 									step={0.01}
-									value={progress}
+									value={player.progressValue}
 									onChangeEnd={(v) => handleSetProgress(v)}
 								/>
 							</div>
+
+							<div>
+								<ActionIcon
+									size={42}
+									variant="default"
+									aria-label="Restart video"
+								>
+									<IconRefreshAlert
+										onClick={() => handleSetProgress(0)}
+										style={{ width: rem(24), height: rem(24) }}
+									/>
+								</ActionIcon>
+							</div>
+							<div>
+								{videoControls === "NOT_ALLOWED" ? (
+									<ActionIcon
+										size={42}
+										variant="default"
+										aria-label="Sync video"
+									>
+										<IconReload
+											onClick={() => {
+												if (videoStateFromDatabase) {
+													handleSetProgress(
+														videoStateFromDatabase.progressValue
+													);
+												}
+											}}
+											style={{ width: rem(24), height: rem(24) }}
+										/>
+									</ActionIcon>
+								) : null}
+							</div>
+						</div>
+
+						<div
+							style={{
+								display: "flex",
+								height: "60px",
+								gap: "5px",
+								alignItems: "center",
+								borderRadius: "4px",
+								paddingTop: "30px",
+							}}
+						>
+							<Textarea
+								placeholder="Input placeholder"
+								style={{ width: "95%" }}
+							/>
+							<ActionIcon
+								size={42}
+								variant="default"
+								aria-label="The Moderator"
+							>
+								<IconUserBolt style={{ width: rem(30), height: rem(30) }} />
+							</ActionIcon>
 						</div>
 					</div>
 				</Grid.Col>
