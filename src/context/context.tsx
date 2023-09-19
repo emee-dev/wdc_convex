@@ -1,11 +1,4 @@
-import React, {
-	createContext,
-	useContext,
-	ReactNode,
-	useState,
-	useEffect,
-} from "react";
-import { useNavigate } from "react-router-dom";
+import React, { createContext, useContext, ReactNode, useState } from "react";
 
 export type User = {
 	roomId: string;
@@ -52,5 +45,4 @@ export function useAuth() {
 	};
 
 	return { user: context.user, setUser };
-	// return { user: getUser(), setUser };
 }

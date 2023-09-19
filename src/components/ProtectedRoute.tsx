@@ -1,14 +1,11 @@
 import { useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
-import { useMutation, useQuery } from "convex/react";
-import { api } from "../../convex/_generated/api";
 import { useAuth } from "../context/context";
 
 const ProtectedRoute = () => {
 	const navigate = useNavigate();
 
-	const { user, setUser } = useAuth();
-	const key = "user";
+	const { setUser } = useAuth();
 
 	useEffect(() => {
 		const key = "user";
