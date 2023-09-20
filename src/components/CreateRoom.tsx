@@ -19,7 +19,7 @@ import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../context/context";
 
-const Copy = ({ value = "" }) => {
+export const Copy = ({ value = "" }) => {
 	return (
 		<CopyButton value={value} timeout={2000}>
 			{({ copied, copy }) => (

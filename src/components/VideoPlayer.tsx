@@ -1,9 +1,18 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery } from "convex/react";
-import { ActionIcon, Grid, Slider, Textarea, rem } from "@mantine/core";
+import {
+	ActionIcon,
+	Grid,
+	Slider,
+	Textarea,
+	rem,
+	Button,
+	Tooltip,
+} from "@mantine/core";
 import { api } from "../../convex/_generated/api";
 import { OnProgressProps } from "react-player/base";
 import { useAuth } from "../context/context";
+import { useClipboard } from "@mantine/hooks";
 import {
 	IconReload,
 	IconPlayerPlay,
@@ -14,6 +23,7 @@ import {
 	IconSend,
 } from "@tabler/icons-react";
 import AllPlayer from "react-player";
+import { Copy } from "./CreateRoom";
 
 const VideoPlayer = () => {
 	const { user } = useAuth();
@@ -158,6 +168,14 @@ const VideoPlayer = () => {
 		<Grid style={{ height: "100vh", background: "#555555" }}>
 			<Grid.Col span={12} style={{ height: "10%" }}>
 				{/* Section 1 */}
+				<div style={styles.roomDetails}>
+					<Button variant="outline" rightIcon={<Copy value={user.roomId} />}>
+						Copy Room Id
+					</Button>
+					<Button variant="outline" rightIcon={<Copy value={user.password} />}>
+						Copy Password
+					</Button>
+				</div>
 			</Grid.Col>
 			<Grid.Col span={3} style={styles.membersColumn as React.CSSProperties}>
 				{/* Section 2: Members */}
@@ -305,6 +323,12 @@ const styles = {
 	videoColumn: {
 		display: "flex",
 		height: "90%",
+		justifyContent: "center",
+	},
+	roomDetails: {
+		display: "flex",
+		marginTop: "5px",
+		gap: "5px",
 		justifyContent: "center",
 	},
 	commentColumn: {
