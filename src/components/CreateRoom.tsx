@@ -15,7 +15,7 @@ import { FormEvent, useState, useEffect } from "react";
 import { IconCheck, IconCopy } from "@tabler/icons-react";
 import { generate } from "short-uuid";
 import { useNavigate } from "react-router-dom";
-import { useMutation, useQuery } from "convex/react";
+import { useMutation } from "convex/react";
 import { api } from "../../convex/_generated/api";
 import { useAuth } from "../context/context";
 

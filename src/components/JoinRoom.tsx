@@ -15,9 +15,9 @@ const JoinRoom = ({ open, onClose }: Prop) => {
 	const joinRoom = useMutation(api.db.inviteUser);
 	let { setUser } = useAuth();
 
-	const [roomId, setRoomId] = useState("sL6NmWWjS34bmS2j9fRWTT");
-	const [username, setUsername] = useState("Gojo");
-	const [password, setPassword] = useState("6cJWYwzzbtzNy76yHkm4yF");
+	const [roomId, setRoomId] = useState("");
+	const [username, setUsername] = useState("");
+	const [password, setPassword] = useState("");
 	const [loading, setLoading] = useState(false);
 	const [disable, setDisabled] = useState(false);
 	const [btnMsg, setBtnMsg] = useState("Join Room");
