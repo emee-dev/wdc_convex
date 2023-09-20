@@ -351,79 +351,101 @@ export const updateVideo = mutation({
 	},
 });
 
-export const elevateUser = mutation({
+export const addComment = mutation({
 	args: {
 		roomId: v.string(),
-		moderator: v.object({
-			username: v.string(),
-		}),
+		username: v.string(),
 		password: v.string(),
-		invited: v.object({
-			username: v.string(),
-			videoControls: v.union(v.literal("ALLOWED"), v.literal("NOT_ALLOWED")),
-		}),
+		comment: v.string(),
 	},
-	handler: async (ctx, { roomId, moderator, invited }) => {
-		// Only a moderator can elevate another user
-		const findModerator = await ctx.db
-			.query("users")
+	handler: async (ctx, { comment, password, roomId, username }) => {
+		//
+		const findRoom = await ctx.db
+			.query("rooms")
 			.filter((q) =>
 				q.and(
-					q.eq(q.field("moderator"), true),
 					q.eq(q.field("roomId"), roomId),
-					q.eq(q.field("username"), moderator.username)
+					q.eq(q.field("password"), password)
 				)
 			)
 			.first();
 
-		if (!findModerator)
+		if (!findRoom)
 			return {
 				status: false,
-				dbErr: findModerator,
-				error: "'Elevate User', you are not authorized",
+				dbErr: findRoom,
+				error: "'Add Comment', room was not found",
 				data: [],
 			};
 
-		// Make sure invited user exists for the room and is not a moderator
-		const findInvite = await ctx.db
-			.query("users")
-			.filter((q) =>
-				q.and(
-					q.eq(q.field("moderator"), false),
-					q.eq(q.field("roomId"), roomId),
-					q.eq(q.field("username"), invited.username)
-				)
-			)
-			.first();
+		let newComment = await ctx.db.insert("comment", {
+			comment,
+			roomId,
+			username,
+		});
 
-		if (!findInvite)
+		if (!newComment) {
 			return {
 				status: false,
-				dbErr: findModerator,
-				error: "'Elevate User', invited user does not exist",
+				dbErr: newComment,
+				error: "'Add Comment', comment was not added",
 				data: [],
 			};
-
-		let moderatorId = findModerator._id;
-		let inviteId = findInvite._id;
-
-		// Update the status of moderator user
-		await ctx.db.patch(moderatorId, {
-			videoControls: "NOT_ALLOWED",
-			moderator: false,
-		});
-
-		// Update the status of invite user
-		await ctx.db.patch(inviteId, {
-			videoControls: "ALLOWED",
-			moderator: true,
-		});
+		}
 
 		return {
 			status: true,
 			dbErr: null,
 			error: null,
-			data: [],
+			data: [newComment],
+		};
+	},
+});
+
+export const fetchComments = query({
+	args: {
+		roomId: v.string(),
+		password: v.string(),
+	},
+	handler: async (ctx, { password, roomId }) => {
+		//
+		const findRoom = await ctx.db
+			.query("rooms")
+			.filter((q) =>
+				q.and(
+					q.eq(q.field("roomId"), roomId),
+					q.eq(q.field("password"), password)
+				)
+			)
+			.first();
+
+		if (!findRoom)
+			return {
+				status: false,
+				dbErr: findRoom,
+				error: "'Fetch Comment', room was not found",
+				data: [],
+			};
+
+		let allComments = await ctx.db
+			.query("comment")
+			.filter((q) => q.eq(q.field("roomId"), roomId))
+			.collect();
+
+		if (!allComments) {
+			return {
+				status: false,
+				dbErr: allComments,
+				error: "'Fetch Comment', there was no comment",
+				data: [],
+			};
+		}
+
+		return {
+			status: true,
+			dbErr: null,
+			error: null,
+			data: allComments,
 		};
 	},
 });

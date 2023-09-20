@@ -22,4 +22,10 @@ export default defineSchema({
 			progressValue: v.number(),
 		}),
 	}),
+
+	comment: defineTable({
+		roomId: v.string(),
+		username: v.string(),
+		comment: v.string(),
+	}),
 });
