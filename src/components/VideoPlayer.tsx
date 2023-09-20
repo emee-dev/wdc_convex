@@ -19,6 +19,7 @@ const VideoPlayer = () => {
 	const { user } = useAuth();
 
 	const updateVideo = useMutation(api.db.updateVideo);
+	const addCommentMutation = useMutation(api.db.addComment);
 
 	const videoStateQuery = useQuery(api.db.getVideo, {
 		roomId: user.roomId,
@@ -44,7 +45,8 @@ const VideoPlayer = () => {
 	const [isBuffering, setIsBuffering] = useState(true);
 	const [videoUrl, setVideoUrl] = useState("/sample.mp4");
 	const [members, setMembers] = useState<typeof allMembers>([]);
-	const [comments, setComment] = useState<typeof allComments>([]);
+	const [comments, setComments] = useState<typeof allComments>([]);
+	const [newComment, setNewComment] = useState("");
 	const [player, setPlayer] = useState({
 		seekValue: 0,
 		isPlaying: false,
@@ -107,6 +109,8 @@ const VideoPlayer = () => {
 		}));
 	};
 
+	// const handleCommentSubmit = ()
+
 	useEffect(() => {
 		setVideoControls(user.videoControls);
 		if (videoUrlFromDb) setVideoUrl(videoUrlFromDb);
@@ -120,6 +124,10 @@ const VideoPlayer = () => {
 
 		if (allMembers && allMembers.length >= 1) {
 			setMembers([...allMembers]);
+		}
+
+		if (allComments && allComments.length >= 1) {
+			setComments([...allComments]);
 		}
 	}, [user, videoStateFromDatabase, allMembers, allComments]);
 
@@ -240,12 +248,26 @@ const VideoPlayer = () => {
 						</div>
 					</div>
 					<div style={styles.commentContainer}>
-						<Textarea placeholder="Input placeholder" style={styles.textarea} />
+						<Textarea
+							value={newComment}
+							onChange={(e) => setNewComment(e.currentTarget.value)}
+							placeholder="Input placeholder"
+							style={styles.textarea}
+						/>
 						<ActionIcon
 							size={42}
 							variant="default"
-							aria-label="The Moderator"
+							aria-label="Submit Comment"
 							style={styles.sendIcon}
+							onClick={() => {
+								addCommentMutation({
+									comment: newComment,
+									roomId: user.roomId,
+									password: user.password,
+									username: user.username,
+								});
+								setNewComment("");
+							}}
 						>
 							<IconSend style={styles.sendIcon} />
 						</ActionIcon>
@@ -297,6 +319,8 @@ const styles = {
 	comment: {
 		display: "flex",
 		width: "100%",
+		color: "white",
+		fontSize: "1rem",
 	},
 	videoControls: {
 		display: "flex",
