@@ -35,6 +35,60 @@ export const getVideo = query({
 	},
 });
 
+export const login = mutation({
+	args: {
+		roomId: v.string(),
+		username: v.string(),
+		password: v.string(),
+	},
+	handler: async (ctx, { roomId, username, password }) => {
+		// Find the user
+		const user = await ctx.db
+			.query("users")
+			.filter((q) =>
+				q.and(
+					q.eq(q.field("roomId"), roomId),
+					q.eq(q.field("username"), username)
+				)
+			)
+			.first();
+
+		if (!user)
+			return {
+				status: false,
+				dbErr: user,
+				error: "'Login', user does not exist, try again!!",
+				data: [],
+			};
+
+		const room = await ctx.db
+			.query("rooms")
+			.filter((q) =>
+				q.and(
+					q.eq(q.field("roomId"), roomId),
+					q.eq(q.field("password"), password)
+				)
+			)
+			.first();
+
+		if (!room) {
+			return {
+				status: false,
+				dbErr: user,
+				error: "'Login', room does not exist, try again!!",
+				data: [],
+			};
+		}
+
+		return {
+			status: true,
+			dbErr: null,
+			error: null,
+			data: [user],
+		};
+	},
+});
+
 export const getAllMembers = query({
 	args: {
 		roomId: v.string(),

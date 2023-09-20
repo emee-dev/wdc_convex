@@ -1,4 +1,3 @@
-import ReactPlayer, { YouTubeConfig } from "react-player/youtube";
 import AllPlayer from "react-player";
 import { useState, useRef, useEffect } from "react";
 import { useMutation, useQuery } from "convex/react";
@@ -13,6 +12,7 @@ import {
 	IconRefreshAlert,
 	IconUser,
 	IconUserBolt,
+	IconSend,
 } from "@tabler/icons-react";
 
 const VideoPlayer = () => {
@@ -181,7 +181,7 @@ const VideoPlayer = () => {
 						members.map((item) => {
 							if (item.moderator) {
 								return (
-									<div>
+									<div key={item._id}>
 										<ActionIcon
 											size={62}
 											variant={"gradient"}
@@ -197,7 +197,7 @@ const VideoPlayer = () => {
 
 							if (!item.moderator) {
 								return (
-									<div>
+									<div key={item._id}>
 										<ActionIcon
 											size={62}
 											variant={"default"}
@@ -335,7 +335,7 @@ const VideoPlayer = () => {
 								variant="default"
 								aria-label="The Moderator"
 							>
-								<IconUserBolt style={{ width: rem(30), height: rem(30) }} />
+								<IconSend style={{ width: rem(30), height: rem(30) }} />
 							</ActionIcon>
 						</div>
 					</div>

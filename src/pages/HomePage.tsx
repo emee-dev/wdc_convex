@@ -15,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 import SvgImage from "../assets/image.svg";
 import JoinRoom from "../components/JoinRoom";
 import { useState } from "react";
+import Login from "../components/Login";
 
 const useStyles = createStyles((theme) => ({
 	inner: {
@@ -73,6 +74,7 @@ const useStyles = createStyles((theme) => ({
 
 const HomePage = () => {
 	const [open, setOpened] = useState(false);
+	const [toggleLoginModal, setLoginModal] = useState(false);
 	const { classes } = useStyles();
 
 	const navigate = useNavigate();
@@ -81,9 +83,13 @@ const HomePage = () => {
 	const handleOpen = () => setOpened(true);
 	const handleClose = () => setOpened(false);
 
+	const handleLoginOpen = () => setLoginModal(true);
+	const handleLoginClose = () => setLoginModal(false);
+
 	return (
 		<div>
 			<JoinRoom open={open} onClose={handleClose} />
+			<Login open={toggleLoginModal} onClose={handleLoginClose} />
 			<Container>
 				<div className={classes.inner}>
 					<div className={classes.content}>
@@ -106,10 +112,6 @@ const HomePage = () => {
 								</ThemeIcon>
 							}
 						>
-							<List.Item>
-								<b>Seamless Synchronization</b> – Enjoy synchronized video
-								playback with friends, no matter where they are. 🔄
-							</List.Item>
 							<List.Item>
 								<b>Multi-Platform Support</b> – Share Videos from Any Source,
 								and Watch Together with Friends! 📺📱💻
@@ -138,6 +140,16 @@ const HomePage = () => {
 								onClick={handleOpen}
 							>
 								Join room 😊
+							</Button>
+
+							<Button
+								radius="xl"
+								size="md"
+								variant="default"
+								className={classes.control}
+								onClick={handleLoginOpen}
+							>
+								Login ... 🧑‍💻
 							</Button>
 						</Group>
 					</div>
